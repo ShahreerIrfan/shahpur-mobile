@@ -32,34 +32,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await Firebase.initializeApp();
-    await _initPushNotifications();
   } catch (e) {
     debugPrint("Failed to initialize Firebase: $e");
   }
   runApp(const ShahpurApp());
-}
-
-Future<void> _initPushNotifications() async {
-  final messaging = FirebaseMessaging.instance;
-
-  // Request notification permissions
-  final settings = await messaging.requestPermission(
-    alert: true,
-    badge: true,
-    sound: true,
-  );
-
-  if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-    // Get FCM registration token
-    final token = await messaging.getToken();
-    if (token != null) {
-      debugPrint("FCM Registration Token: $token");
-      await api.registerDeviceToken(token);
-    }
-
-    // Handle token refresh
-    messaging.onTokenRefresh.listen((newToken) async {
-      await api.registerDeviceToken(newToken);
-    });
-  }
 }

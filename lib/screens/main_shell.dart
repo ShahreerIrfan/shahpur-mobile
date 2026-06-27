@@ -11,6 +11,146 @@ class _MainShellState extends State<MainShell> {
   int index = 0;
   final List<int> tabHistory = [];
 
+  @override
+  void initState() {
+    super.initState();
+    _checkAndPromptNotifications();
+  }
+
+  Future<void> _checkAndPromptNotifications() async {
+    final prefs = await SharedPreferences.getInstance();
+    final prompted = prefs.getBool('prompted_notifications') ?? false;
+    if (!prompted) {
+      Future.delayed(const Duration(seconds: 2), () {
+        if (!mounted) return;
+        _showCustomNotificationDialog(prefs);
+      });
+    } else {
+      _initFCMDirectly();
+    }
+  }
+
+  void _showCustomNotificationDialog(SharedPreferences prefs) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          backgroundColor: Colors.white,
+          title: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFE6F4EA),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.notifications_active,
+                  color: Color(0xFF034838),
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Expanded(
+                child: Text(
+                  'নোটিফিকেশন অন করুন',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Color(0xFF034838),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          content: const Text(
+            'শাহপুর দরবার শরীফের সব খবরাখবর এবং নোটিফিকেশন সবার আগে পেতে নোটিফিকেশন অন করে রাখুন।',
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.black87,
+              height: 1.4,
+            ),
+          ),
+          actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          actions: [
+            TextButton(
+              onPressed: () {
+                prefs.setBool('prompted_notifications', true);
+                Navigator.pop(context);
+              },
+              child: const Text(
+                'পরে',
+                style: TextStyle(
+                  color: Colors.grey,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF034838),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              onPressed: () async {
+                prefs.setBool('prompted_notifications', true);
+                Navigator.pop(context);
+                await _requestNativeNotificationPermission();
+              },
+              child: const Text(
+                'অনুমতি দিন',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _requestNativeNotificationPermission() async {
+    final messaging = FirebaseMessaging.instance;
+    final settings = await messaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      final token = await messaging.getToken();
+      if (token != null) {
+        debugPrint("FCM Registration Token: $token");
+        await api.registerDeviceToken(token);
+      }
+      messaging.onTokenRefresh.listen((newToken) async {
+        await api.registerDeviceToken(newToken);
+      });
+    }
+  }
+
+  Future<void> _initFCMDirectly() async {
+    final messaging = FirebaseMessaging.instance;
+    final settings = await messaging.getNotificationSettings();
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      final token = await messaging.getToken();
+      if (token != null) {
+        await api.registerDeviceToken(token);
+      }
+      messaging.onTokenRefresh.listen((newToken) async {
+        await api.registerDeviceToken(newToken);
+      });
+    }
+  }
+
   final pages = const [
     HomeScreen(),
     ApiArchiveScreen(type: ArchiveType.madrasha),
