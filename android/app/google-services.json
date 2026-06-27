@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "669648771681",
+    "project_id": "shahpur-da068",
+    "storage_bucket": "shahpur-da068.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:669648771681:android:e2a838b1294023363d2820",
+        "android_client_info": {
+          "package_name": "com.shahpur.darbar.mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDr5OItEDH5XuSTYJ-MOaB9ZWbtP-q3SO0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

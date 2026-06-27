@@ -50,6 +50,17 @@ class ApiService {
     }
     return path.startsWith('/') ? '$root$path' : '$root/$path';
   }
+  Future<void> registerDeviceToken(String token) async {
+    try {
+      await http.post(
+        uri('/core/register-device/'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'token': token, 'platform': 'android'}),
+      );
+    } catch (e) {
+      debugPrint('Failed to register FCM token to backend: $e');
+    }
+  }
 }
 
 bool _usesCreatedOrder(String path) {

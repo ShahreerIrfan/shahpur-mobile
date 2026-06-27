@@ -21,7 +21,6 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    final titles = ['হোম', 'মাদ্রাসা', 'ইভেন্ট', 'বই', 'অ্যাকাউন্ট'];
     return PopScope(
       canPop: index == 0 && tabHistory.isEmpty,
       onPopInvokedWithResult: (didPop, result) {
@@ -35,30 +34,117 @@ class _MainShellState extends State<MainShell> {
         });
       },
       child: Scaffold(
-        appBar: AppBar(
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'শাহপুর দরবার শরীফ',
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
-              ),
-              Text(
-                titles[index],
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
         drawer: AppDrawer(
           onSelect: _openDrawerPage,
           onTabSelect: _openDrawerTab,
         ),
-        body: pages[index],
+        body: SafeArea(
+          child: Column(
+            children: [
+              // Bismillah Top Bar (Matches Web Mobile)
+              Container(
+                width: double.infinity,
+                color: const Color(0xFF034838),
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                alignment: Alignment.center,
+                child: const Text(
+                  'بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'serif',
+                  ),
+                ),
+              ),
+              // Main Header Card (Matches Web Mobile)
+              Container(
+                margin: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: const Color(0xFFA7F3D0).withValues(alpha: 0.8),
+                    width: 1.5,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    // Circular Logo
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: const Color(0xFFF0FDF4),
+                        border: Border.all(
+                          color: const Color(0xFF10B981).withValues(alpha: 0.2),
+                        ),
+                      ),
+                      padding: const EdgeInsets.all(4),
+                      child: Image.asset(
+                        'assets/images/logo_nobg.png',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    // Title & Subtitle Texts next to it
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'শাহপুর দরবার শরীফ',
+                            style: TextStyle(
+                              color: Color(0xFF034838),
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                            ),
+                          ),
+                          Text(
+                            'Shahpur Darbar Sharif',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Hamburger Drawer Menu Icon
+                    Builder(
+                      builder: (context) => InkWell(
+                        onTap: () => Scaffold.of(context).openDrawer(),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          child: const Icon(
+                            Icons.menu,
+                            color: Color(0xFF1F2937),
+                            size: 24,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Expanded(
+                child: pages[index],
+              ),
+            ],
+          ),
+        ),
         bottomNavigationBar: NavigationBar(
           selectedIndex: index,
           onDestinationSelected: _selectTab,
@@ -129,19 +215,16 @@ class AppDrawer extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(20),
               color: primaryDark,
-              child: const Column(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    backgroundColor: primary,
+                  const CircleAvatar(
+                    backgroundColor: Colors.white,
                     radius: 26,
-                    child: Text(
-                      'শ',
-                      style: TextStyle(color: Colors.white, fontSize: 22),
-                    ),
+                    backgroundImage: AssetImage('assets/images/logo_nobg.png'),
                   ),
-                  SizedBox(height: 12),
-                  Text(
+                  const SizedBox(height: 12),
+                  const Text(
                     'শাহপুর দরবার শরীফ',
                     style: TextStyle(
                       color: Colors.white,
@@ -149,7 +232,7 @@ class AppDrawer extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  Text(
+                  const Text(
                     'بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ',
                     style: TextStyle(color: gold),
                   ),
