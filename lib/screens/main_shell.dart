@@ -217,6 +217,184 @@ class _MainShellState extends State<MainShell> {
     }
   }
 
+  void _showNotificationBottomSheet() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.7,
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+          ),
+          child: Column(
+            children: [
+              // Header
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 16, 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.between,
+                  children: [
+                    const Row(
+                      children: [
+                        Icon(Icons.notifications_active, color: primary, size: 22),
+                        SizedBox(width: 8),
+                        Text(
+                          'ঘোষণা ও নোটিশ',
+                          style: TextStyle(
+                            color: primaryDark,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                      ],
+                    ),
+                    IconButton(
+                      onPressed: () => Navigator.pop(context),
+                      icon: const Icon(Icons.close, color: Colors.grey),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Color(0xFFF3F4F6),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Divider(height: 1, thickness: 1, color: Color(0xFFF3F4F6)),
+              
+              // Notifications list
+              Expanded(
+                child: FutureBuilder<List<Map<String, dynamic>>>(
+                  future: api.list('/core/notifications/'),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.notifications_off_outlined, size: 48, color: Colors.grey.shade350),
+                            const SizedBox(height: 8),
+                            Text(
+                              'কোনো ঘোষণা পাওয়া যায়নি',
+                              style: TextStyle(color: Colors.grey.shade500, fontSize: 13, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    final items = snapshot.data!;
+                    return FutureBuilder<SharedPreferences>(
+                      future: SharedPreferences.getInstance(),
+                      builder: (context, prefsSnapshot) {
+                        final readIds = prefsSnapshot.data?.getStringList('read_notification_ids') ?? [];
+                        
+                        return ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: items.length,
+                          separatorBuilder: (context, index) => const Divider(height: 1, color: Color(0xFFF3F4F6)),
+                          itemBuilder: (context, index) {
+                            final notif = items[index];
+                            final idStr = notif['id'].toString();
+                            final isUnread = !readIds.contains(idStr);
+                            final imageUrl = api.mediaUrl(text(notif, 'image'));
+                            
+                            return ListTile(
+                              contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+                              leading: imageUrl.isNotEmpty
+                                  ? Container(
+                                      width: 44,
+                                      height: 44,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        image: DecorationImage(
+                                          image: CachedNetworkImageProvider(imageUrl),
+                                          fit: BoxFit.cover,
+                                        ),
+                                      ),
+                                    )
+                                  : Container(
+                                      width: 44,
+                                      height: 44,
+                                      decoration: BoxDecoration(
+                                        color: primary.withOpacity(0.08),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Icon(Icons.notifications_none, color: primary),
+                                    ),
+                              title: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      text(notif, 'title', fallback: 'শিরোনাম নেই'),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontWeight: isUnread ? FontWeight.w900 : FontWeight.w600,
+                                        fontSize: 13.5,
+                                        color: isUnread ? primaryDark : Colors.grey.shade800,
+                                      ),
+                                    ),
+                                  ),
+                                  if (isUnread)
+                                    Container(
+                                      width: 7,
+                                      height: 7,
+                                      decoration: const BoxDecoration(
+                                        color: primary,
+                                        shape: BoxShape.circle,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                              subtitle: Padding(
+                                padding: const EdgeInsets.only(top: 4.0),
+                                child: Text(
+                                  text(notif, 'description'),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 11.5,
+                                    color: Colors.grey.shade650,
+                                    height: 1.3,
+                                  ),
+                                ),
+                              ),
+                              onTap: () {
+                                if (prefsSnapshot.hasData && isUnread) {
+                                  final newReadIds = List<String>.from(readIds)..add(idStr);
+                                  prefsSnapshot.data!.setStringList('read_notification_ids', newReadIds);
+                                }
+                                Navigator.pop(context); // Close bottom sheet
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => DetailScreen(
+                                      type: ArchiveType.announcements,
+                                      id: notif['id'],
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   final pages = const [
     HomeScreen(),
     ApiArchiveScreen(type: ArchiveType.madrasha),
@@ -327,6 +505,70 @@ class _MainShellState extends State<MainShell> {
                         ],
                       ),
                     ),
+                    // Notifications Bell Icon
+                    FutureBuilder<List<Map<String, dynamic>>>(
+                      future: api.list('/core/notifications/'),
+                      builder: (context, apiSnapshot) {
+                        return FutureBuilder<SharedPreferences>(
+                          future: SharedPreferences.getInstance(),
+                          builder: (context, prefsSnapshot) {
+                            int unreadCount = 0;
+                            if (apiSnapshot.hasData && prefsSnapshot.hasData) {
+                              final readIds = prefsSnapshot.data!.getStringList('read_notification_ids') ?? [];
+                              unreadCount = apiSnapshot.data!
+                                  .where((notif) => !readIds.contains(notif['id'].toString()))
+                                  .length;
+                            }
+                            
+                            return InkWell(
+                              onTap: () {
+                                _showNotificationBottomSheet();
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Container(
+                                padding: const EdgeInsets.all(6),
+                                child: Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    const Icon(
+                                      Icons.notifications_none_outlined,
+                                      color: Color(0xFF1F2937),
+                                      size: 24,
+                                    ),
+                                    if (unreadCount > 0)
+                                      Positioned(
+                                        top: -2,
+                                        right: -2,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(3),
+                                          decoration: const BoxDecoration(
+                                            color: Colors.red,
+                                            shape: BoxShape.circle,
+                                          ),
+                                          constraints: const BoxConstraints(
+                                            minWidth: 14,
+                                            minHeight: 14,
+                                          ),
+                                          child: Text(
+                                            unreadCount > 9 ? '9+' : '$unreadCount',
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 8,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 8),
                     // Hamburger Drawer Menu Icon
                     Builder(
                       builder: (context) => InkWell(
