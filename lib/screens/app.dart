@@ -1,5 +1,7 @@
 part of '../main.dart';
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 class ShahpurApp extends StatefulWidget {
   const ShahpurApp({super.key});
 
@@ -21,6 +23,7 @@ class _ShahpurAppState extends State<ShahpurApp> {
     return AuthScope(
       auth: auth,
       child: MaterialApp(
+        navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
         title: 'শাহপুর দরবার শরীফ',
         theme: ThemeData(

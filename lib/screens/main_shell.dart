@@ -15,6 +15,7 @@ class _MainShellState extends State<MainShell> {
   void initState() {
     super.initState();
     _checkAndPromptNotifications();
+    _setupFCMClickHandling();
   }
 
   Future<void> _checkAndPromptNotifications() async {
@@ -148,6 +149,37 @@ class _MainShellState extends State<MainShell> {
       messaging.onTokenRefresh.listen((newToken) async {
         await api.registerDeviceToken(newToken);
       });
+    }
+  }
+
+  Future<void> _setupFCMClickHandling() async {
+    // Listen for notification clicks when the app is in the background or foreground
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      _handleNotificationClick(message);
+    });
+
+    // Check if the app was opened from a terminated state via a notification click
+    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+    if (initialMessage != null) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _handleNotificationClick(initialMessage);
+      });
+    }
+  }
+
+  void _handleNotificationClick(RemoteMessage message) {
+    debugPrint("FCM Notification clicked: ${message.data}");
+    final data = message.data;
+    if (data['type'] == 'event' && data['event_id'] != null) {
+      final eventId = int.tryParse(data['event_id'].toString()) ?? data['event_id'];
+      navigatorKey.currentState?.push(
+        MaterialPageRoute(
+          builder: (context) => DetailScreen(
+            type: ArchiveType.events,
+            id: eventId,
+          ),
+        ),
+      );
     }
   }
 
