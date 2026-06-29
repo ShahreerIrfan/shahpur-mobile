@@ -235,7 +235,7 @@ class _MainShellState extends State<MainShell> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 20, 16, 12),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.between,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Row(
                       children: [
@@ -276,7 +276,7 @@ class _MainShellState extends State<MainShell> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.notifications_off_outlined, size: 48, color: Colors.grey.shade350),
+                            Icon(Icons.notifications_off_outlined, size: 48, color: Colors.grey.shade300),
                             const SizedBox(height: 8),
                             Text(
                               'কোনো ঘোষণা পাওয়া যায়নি',
@@ -359,7 +359,7 @@ class _MainShellState extends State<MainShell> {
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
                                     fontSize: 11.5,
-                                    color: Colors.grey.shade650,
+                                    color: Colors.grey.shade600,
                                     height: 1.3,
                                   ),
                                 ),
