@@ -172,14 +172,26 @@ class _MainShellState extends State<MainShell> {
     final data = message.data;
     if (data['type'] == 'event' && data['event_id'] != null) {
       final eventId = int.tryParse(data['event_id'].toString()) ?? data['event_id'];
-      navigatorKey.currentState?.push(
-        MaterialPageRoute(
-          builder: (context) => DetailScreen(
-            type: ArchiveType.events,
-            id: eventId,
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DetailScreen(
+              type: ArchiveType.events,
+              id: eventId,
+            ),
           ),
-        ),
-      );
+        );
+      } else {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            builder: (context) => DetailScreen(
+              type: ArchiveType.events,
+              id: eventId,
+            ),
+          ),
+        );
+      }
     }
   }
 
