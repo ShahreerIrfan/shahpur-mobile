@@ -12,6 +12,10 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_notification" />
+        <!-- Set default notification color for the background circle -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_icon_color" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
