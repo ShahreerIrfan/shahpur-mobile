@@ -192,6 +192,28 @@ class _MainShellState extends State<MainShell> {
           ),
         );
       }
+    } else if (data['type'] == 'announcement' && data['announcement_id'] != null) {
+      final announcementId = int.tryParse(data['announcement_id'].toString()) ?? data['announcement_id'];
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => DetailScreen(
+              type: ArchiveType.announcements,
+              id: announcementId,
+            ),
+          ),
+        );
+      } else {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(
+            builder: (context) => DetailScreen(
+              type: ArchiveType.announcements,
+              id: announcementId,
+            ),
+          ),
+        );
+      }
     }
   }
 

@@ -25,7 +25,7 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-enum ArchiveType { madrasha, khankah, events, books }
+enum ArchiveType { madrasha, khankah, events, books, announcements }
 
 extension ArchiveConfig on ArchiveType {
   String get title {
@@ -38,6 +38,8 @@ extension ArchiveConfig on ArchiveType {
         return 'ইভেন্ট / মাহফিল';
       case ArchiveType.books:
         return 'বই ও PDF লাইব্রেরি';
+      case ArchiveType.announcements:
+        return 'ঘোষণা ও নোটিশ';
     }
   }
 
@@ -51,6 +53,8 @@ extension ArchiveConfig on ArchiveType {
         return '/events/list/';
       case ArchiveType.books:
         return '/books/list/';
+      case ArchiveType.announcements:
+        return '/core/notifications/';
     }
   }
 
@@ -62,6 +66,7 @@ extension ArchiveConfig on ArchiveType {
         return 'khankah_name';
       case ArchiveType.events:
       case ArchiveType.books:
+      case ArchiveType.announcements:
         return 'title';
     }
   }
@@ -75,6 +80,8 @@ extension ArchiveConfig on ArchiveType {
         return 'poster';
       case ArchiveType.books:
         return 'cover_image';
+      case ArchiveType.announcements:
+        return 'image';
     }
   }
 
@@ -88,6 +95,8 @@ extension ArchiveConfig on ArchiveType {
         return Icons.event_outlined;
       case ArchiveType.books:
         return Icons.picture_as_pdf_outlined;
+      case ArchiveType.announcements:
+        return Icons.campaign_outlined;
     }
   }
 }
@@ -124,6 +133,9 @@ class HomePreviewList extends StatelessWidget {
             break;
           case ArchiveType.books:
             viewAllLabel = 'সব বই দেখুন';
+            break;
+          case ArchiveType.announcements:
+            viewAllLabel = 'সব ঘোষণা দেখুন';
             break;
         }
 
@@ -693,6 +705,11 @@ String _subtitle(Map<String, dynamic> item, ArchiveType type) {
         text(item, 'author_name', fallback: 'লেখক উল্লেখ নেই'),
         text(item, 'category_display'),
         text(item, 'language_display'),
+      ].where((value) => value.isNotEmpty).join(' • ');
+    case ArchiveType.announcements:
+      return [
+        text(item, 'category_display'),
+        text(item, 'publisher_display'),
       ].where((value) => value.isNotEmpty).join(' • ');
   }
 }

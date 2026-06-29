@@ -26,6 +26,9 @@ class DetailScreen extends StatelessWidget {
           if (type == ArchiveType.events) {
             return EventDetailBody(item: item);
           }
+          if (type == ArchiveType.announcements) {
+            return AnnouncementDetailBody(item: item);
+          }
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -182,6 +185,8 @@ class DetailScreen extends StatelessWidget {
             label: const Text('PDF খুলুন / পড়ুন'),
           ),
         ];
+      case ArchiveType.announcements:
+        return [];
     }
   }
 
@@ -191,6 +196,163 @@ class DetailScreen extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => MobilePdfReaderScreen(item: item)),
+    );
+  }
+}
+
+class AnnouncementDetailBody extends StatelessWidget {
+  const AnnouncementDetailBody({super.key, required this.item});
+
+  final Map<String, dynamic> item;
+
+  @override
+  Widget build(BuildContext context) {
+    final title = text(item, 'title', fallback: 'শিরোনাম নেই');
+    final shortDesc = text(item, 'short_description');
+    final desc = text(item, 'description');
+    final category = text(item, 'category');
+    final publisher = text(item, 'publisher');
+    final image = api.mediaUrl(text(item, 'image'));
+    final createdAt = text(item, 'created_at');
+
+    String formattedDate = '';
+    try {
+      if (createdAt.isNotEmpty) {
+        final dt = DateTime.parse(createdAt).toLocal();
+        formattedDate = "${dt.day}/${dt.month}/${dt.year} ${dt.hour}:${dt.minute.toString().padLeft(2, '0')}";
+      }
+    } catch (_) {}
+
+    String categoryLabel = category == 'notice' ? 'নোটিশ' : (category == 'announcement' ? 'ঘোষণা' : 'অন্যান্য');
+    Color categoryColor = category == 'notice' ? Colors.blue.shade700 : (category == 'announcement' ? Colors.amber.shade800 : Colors.grey.shade700);
+    Color categoryBg = category == 'notice' ? Colors.blue.shade50 : (category == 'announcement' ? Colors.amber.shade50 : Colors.grey.shade50);
+
+    String publisherLabel = publisher == 'office' ? 'অফিস' : 'এডমিন';
+
+    return ListView(
+      padding: const EdgeInsets.all(16),
+      children: [
+        // Image Header
+        if (image.isNotEmpty)
+          Container(
+            height: 240,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.06),
+                  blurRadius: 16,
+                  offset: const Offset(0, 4),
+                )
+              ],
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: CachedNetworkImage(
+              imageUrl: image,
+              fit: BoxFit.cover,
+              placeholder: (context, url) => Container(color: Colors.grey.shade100, child: const Center(child: CircularProgressIndicator())),
+              errorWidget: (context, url, error) => const Icon(Icons.error),
+            ),
+          ),
+        const SizedBox(height: 20),
+
+        // Badges row
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: categoryBg,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: categoryColor.withOpacity(0.15)),
+              ),
+              child: Text(
+                categoryLabel,
+                style: TextStyle(
+                  color: categoryColor,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.teal.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.teal.shade200),
+              ),
+              child: Text(
+                "প্রকাশক: $publisherLabel",
+                style: TextStyle(
+                  color: Colors.teal.shade800,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            if (formattedDate.isNotEmpty)
+              Text(
+                formattedDate,
+                style: TextStyle(
+                  color: Colors.grey.shade600,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 16),
+
+        // Title
+        Text(
+          title,
+          style: const TextStyle(
+            color: primaryDark,
+            fontSize: 24,
+            fontWeight: FontWeight.w900,
+            height: 1.3,
+          ),
+        ),
+        const SizedBox(height: 12),
+
+        // Short Description
+        if (shortDesc.isNotEmpty)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: primary.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: primary.withOpacity(0.1)),
+            ),
+            child: Text(
+              shortDesc,
+              style: const TextStyle(
+                color: primaryDark,
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                height: 1.45,
+              ),
+            ),
+          ),
+        const SizedBox(height: 16),
+
+        // Detailed Description
+        if (desc.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              desc,
+              style: TextStyle(
+                color: Colors.grey.shade800,
+                fontSize: 15,
+                height: 1.6,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

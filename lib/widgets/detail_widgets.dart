@@ -85,6 +85,11 @@ class DetailHero extends StatelessWidget {
           text(item, 'category_display'),
           text(item, 'language_display'),
         ].where((e) => e.isNotEmpty).join(' • ');
+      case ArchiveType.announcements:
+        return [
+          text(item, 'category_display'),
+          text(item, 'publisher_display'),
+        ].where((e) => e.isNotEmpty).join(' • ');
     }
   }
 }
