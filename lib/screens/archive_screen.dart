@@ -415,7 +415,253 @@ class _ApiArchiveScreenState extends State<ApiArchiveScreen> {
                   ErrorBox('${snapshot.error}')
                 else if ((snapshot.data ?? []).isEmpty)
                   const EmptyBox('কোনো তথ্য পাওয়া যায়নি')
-                else
+                else if (widget.type == ArchiveType.books) ...[
+                  Builder(
+                    builder: (context) {
+                      final rawItems = snapshot.data ?? [];
+                      final items = List<Map<String, dynamic>>.from(rawItems);
+                      if (items.isNotEmpty && items.length % 2 != 0) {
+                        items.add({'id': 'empty-shelf'});
+                      }
+                      
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFAF8F5),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: const Color(0xFFCBBCAE), width: 8),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.08),
+                              blurRadius: 16,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: GridView.builder(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: items.length,
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 0,
+                            mainAxisSpacing: 0,
+                            childAspectRatio: 0.53,
+                          ),
+                          itemBuilder: (context, index) {
+                            final item = items[index];
+                            final isEmptyShelf = item['id'].toString().startsWith('empty-shelf');
+                            
+                            if (isEmptyShelf) {
+                              return Column(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  const Expanded(child: SizedBox()),
+                                  // Shelf Top Face
+                                  Container(
+                                    height: 12,
+                                    width: double.infinity,
+                                    decoration: const BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [Color(0xFFE3D2C3), Color(0xFFEEDFD0), Color(0xFFE3D2C3)],
+                                      ),
+                                      border: Border(
+                                        top: BorderSide(color: Colors.white24, width: 1),
+                                      ),
+                                    ),
+                                  ),
+                                  // Shelf Front Face
+                                  Container(
+                                    height: 125,
+                                    width: double.infinity,
+                                    decoration: const BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [Color(0xFFBBA999), Color(0xFF9D8C7C)],
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                      ),
+                                      border: Border(
+                                        top: BorderSide(color: Color(0xFFDFD1C5), width: 1.5),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              );
+                            }
+                            
+                            final title = text(item, 'title', fallback: 'শিরোনাম নেই');
+                            final author = text(item, 'author_name');
+                            final image = api.mediaUrl(text(item, 'cover_image'));
+                            
+                            return InkWell(
+                              onTap: () => openDetail(context, widget.type, item),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  // Book standing
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.only(top: 16, bottom: 4),
+                                      alignment: Alignment.bottomCenter,
+                                      child: Container(
+                                        width: 90,
+                                        height: 130,
+                                        decoration: BoxDecoration(
+                                          borderRadius: const BorderRadius.only(
+                                            topRight: Radius.circular(8),
+                                            bottomRight: Radius.circular(8),
+                                            topLeft: Radius.circular(2),
+                                            bottomLeft: Radius.circular(2),
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: Colors.black.withOpacity(0.25),
+                                              blurRadius: 8,
+                                              offset: const Offset(4, 4),
+                                            ),
+                                          ],
+                                        ),
+                                        clipBehavior: Clip.antiAlias,
+                                        child: Stack(
+                                          fit: StackFit.expand,
+                                          children: [
+                                            image.isEmpty
+                                                ? Container(
+                                                    color: const Color(0xFF034838),
+                                                    padding: const EdgeInsets.all(8),
+                                                    alignment: Alignment.center,
+                                                    child: Text(
+                                                      title,
+                                                      textAlign: TextAlign.center,
+                                                      maxLines: 4,
+                                                      style: const TextStyle(
+                                                        color: Colors.white70,
+                                                        fontSize: 9,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  )
+                                                : CachedNetworkImage(
+                                                    imageUrl: image,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                            // Spine line overlay for 3D realism
+                                            Positioned(
+                                              left: 0,
+                                              top: 0,
+                                              bottom: 0,
+                                              width: 8,
+                                              child: Container(
+                                                decoration: BoxDecoration(
+                                                  gradient: LinearGradient(
+                                                    colors: [
+                                                      Colors.black.withOpacity(0.35),
+                                                      Colors.white.withOpacity(0.12),
+                                                      Colors.transparent,
+                                                    ],
+                                                    stops: const [0.0, 0.25, 1.0],
+                                                    begin: Alignment.centerLeft,
+                                                    end: Alignment.centerRight,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  
+                                  // Shelf Top Face
+                                  Container(
+                                    height: 12,
+                                    width: double.infinity,
+                                    decoration: const BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [Color(0xFFE3D2C3), Color(0xFFEEDFD0), Color(0xFFE3D2C3)],
+                                      ),
+                                      border: Border(
+                                        top: BorderSide(color: Colors.white24, width: 1),
+                                      ),
+                                    ),
+                                  ),
+                                  
+                                  // Shelf Front Face & Details
+                                  Container(
+                                    height: 125,
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 10),
+                                    decoration: const BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [Color(0xFFBBA999), Color(0xFF9D8C7C)],
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                      ),
+                                      border: Border(
+                                        top: BorderSide(color: Color(0xFFDFD1C5), width: 1.5),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Column(
+                                          children: [
+                                            Text(
+                                              title,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              textAlign: TextAlign.center,
+                                              style: const TextStyle(
+                                                color: Color(0xFF034838), // Site theme green
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w900,
+                                              ),
+                                            ),
+                                            if (author.isNotEmpty) ...[
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                author,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.center,
+                                                style: const TextStyle(
+                                                  color: Color(0xFF4B5563),
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color: const Color(0xFF034838).withOpacity(0.25),
+                                              width: 1,
+                                            ),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: const Text(
+                                            'বিস্তারিত দেখুন',
+                                            style: TextStyle(
+                                              color: Color(0xFF034838),
+                                              fontSize: 9,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      );
+                    }
+                  ),
+                ] else
                   for (final item in snapshot.data!)
                     ContentTile(
                       item: item,
